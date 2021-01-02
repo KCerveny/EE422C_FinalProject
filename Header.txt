@@ -1,8 +1,0 @@
-/*
- * EE422C Final Project submission by
- * Kellan Cerveny
- * kjc2888
- * 16160
- * Fall 2020
- */
-
