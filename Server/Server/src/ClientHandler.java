@@ -45,6 +45,6 @@ class ClientHandler implements Runnable, Observer {
 
   @Override
   public void update(Observable o, Object arg) {
-    this.sendToClient((String) arg);
+    this.sendToClient((String) arg);								
   }
 }

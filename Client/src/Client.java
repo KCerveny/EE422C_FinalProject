@@ -1,6 +1,6 @@
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.Scanner;
 
@@ -22,22 +22,26 @@ import com.google.gson.GsonBuilder;
 
 public class Client extends Application { 
 	// I/O streams 
-	ObjectOutputStream toServer = null; 
-	ObjectInputStream fromServer = null;
+	private PrintWriter toServer = null; 
+	private BufferedReader fromServer = null;
 	private Scanner consoleInput = new Scanner(System.in);
 
+	
+	
 	@Override
 	public void start(Stage primaryStage) { 
 		BorderPane mainPane = new BorderPane(); 
 
 		// Create a scene and place it in the stage 
-		Scene scene = new Scene(mainPane, 450, 200); 
+		Scene scene = new Scene(mainPane, 700, 500); 
 		primaryStage.setTitle("Client"); // Set the stage title 
 		primaryStage.setScene(scene); // Place the scene in the stage 
 		primaryStage.show(); // Display the stage 
 
 //		XX.setOnAction(e -> { 
-//		});  // etc.
+//		});  // etc.	
+		
+		
 		try {
 			connectToServer(); 
 		} catch (Exception e) {
@@ -52,42 +56,45 @@ public class Client extends Application {
 		// Create a socket to connect to the server 
 		@SuppressWarnings("resource")
 		Socket socket = new Socket("localhost", port); 
+		
 		// Create an input stream to receive data from the server 
-		fromServer = new ObjectInputStream(socket.getInputStream()); 
+		fromServer = new BufferedReader(new InputStreamReader(socket.getInputStream())); 
 		// Create an output stream to send data to the server 
-		toServer = new ObjectOutputStream(socket.getOutputStream()); 
+		toServer = new PrintWriter(socket.getOutputStream()); 
 		
 		Thread readerThread = new Thread(new Runnable() {
-		      @Override
-		      public void run() {
-		        String input;
-		        try {
-		          while ((input = fromServer.readLine()) != null) {
-		            System.out.println("From server: " + input);
-		            processRequest(input);
-		          }
-		        } catch (Exception e) {
-		          e.printStackTrace();
-		        }
-		      }
-		    });
+	      @Override
+	      public void run() {
+	        String input;
+	        try {
+	          while ((input = fromServer.readLine()) != null) {
+	            System.out.println("From server: " + input);
+	            processRequest(input);
+	          }
+	        } catch (Exception e) {
+	          e.printStackTrace();
+	        }
+	      }
+	    });
 
-		    Thread writerThread = new Thread(new Runnable() {
-		      @Override
-		      public void run() {
-		        while (true) {
-		          String input = consoleInput.nextLine();
-		          String[] variables = input.split(",");
-		          Message request = new Message(variables[0], variables[1], Integer.valueOf(variables[2]));
-		          GsonBuilder builder = new GsonBuilder();
-		          Gson gson = builder.create();
-		          sendToServer(gson.toJson(request));
-		        }
-		      }
-		    });
+		// TODO: This will be updated, no longer taking input from the terminal
+		// Add GUI actions for application
+		Thread writerThread = new Thread(new Runnable() {
+	      @Override
+	      public void run() {
+	        while (true) {
+	          String input = consoleInput.nextLine();
+	          String[] variables = input.split(",");
+	          Message request = new Message(variables[0], variables[1], Integer.valueOf(variables[2]));
+	          GsonBuilder builder = new GsonBuilder();
+	          Gson gson = builder.create();
+	          sendToServer(gson.toJson(request));
+	        }
+	      }
+	    });
 
-		    readerThread.start();
-		    writerThread.start();
+	    readerThread.start();
+	    writerThread.start();
 
 	}
 	

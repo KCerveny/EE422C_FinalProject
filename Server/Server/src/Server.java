@@ -1,13 +1,8 @@
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Observable;
-import java.util.Observer;
+import com.google.gson.Gson; 
 
 /*
  * Author: Vallath Nandakumar and the EE 422C instructors.
@@ -49,8 +44,33 @@ public class Server extends Observable {
     }
     
     // TODO: Write driving function to process client requests
-    void processRequest(String input) {
-    	System.out.println("Server has received a new request: " + input);
-    }
+    protected void processRequest(String input) {
+        String output = "Error";
+        Gson gson = new Gson();
+        Message message = gson.fromJson(input, Message.class);
+        try {
+          String temp = "";
+          switch (message.type) {
+            case "upper":
+              temp = message.input.toUpperCase();
+              break;
+            case "lower":
+              temp = message.input.toLowerCase();
+              break;
+            case "strip":
+              temp = message.input.replace(" ", "");
+              break;
+          }
+          output = "";
+          for (int i = 0; i < message.number; i++) {
+            output += temp;
+            output += " ";
+          }
+          this.setChanged();
+          this.notifyObservers(output);
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
+      }
 	
 }
