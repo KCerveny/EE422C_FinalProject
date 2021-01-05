@@ -1,8 +1,14 @@
 import java.io.IOException;
+import java.io.Reader;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.List;
 import java.util.Observable;
-import com.google.gson.Gson; 
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 /*
  * Author: Vallath Nandakumar and the EE 422C instructors.
@@ -19,11 +25,40 @@ public class Server extends Observable {
 
     public static void main (String [] args) {
         server = new Server();
-//        server.populateItems();
+        server.populateItems();
         server.SetupNetworking();
     }
 
-    private void SetupNetworking() {
+    private void populateItems() {
+		// TODO Auto-generated method stub
+//    	CreateAuctionItemsJSON fileList = new CreateAuctionItemsJSON(); 
+//    	fileList.createList();
+    	
+//    	CreateAuctionItemsJSON readFile = new CreateAuctionItemsJSON(); 
+    	
+    	try {
+    	    // create Gson instance
+    	    Gson gson = new Gson();
+
+    	    // create a reader
+    	    Reader reader = Files.newBufferedReader(Paths.get("items0.json"));
+
+    	    // convert JSON array to list of users
+    	    List<AuctionItem> readItems = new Gson().fromJson(reader, new TypeToken<List<AuctionItem>>() {}.getType());
+
+    	    // print users
+    	    readItems.forEach(System.out::println);
+
+    	    // close reader
+    	    reader.close();
+
+    	} catch (Exception ex) {
+    	    ex.printStackTrace();
+    	}
+    			
+	}
+
+	private void SetupNetworking() {
         int port = 5000;
         try {
             ServerSocket ss = new ServerSocket(port);

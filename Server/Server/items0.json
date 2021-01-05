@@ -1,0 +1,20 @@
+[
+    {
+        "name": "breadboard",
+        "description": "conventional solderless breadboard, .1 inch spread",
+        "minPrice": 2.12,
+        "isSold": false
+    },
+    {
+        "name": "Wire Set",
+        "description": "MM, MF, FF Wires in an assortment of colors",
+        "minPrice": 3.3,
+        "isSold": false
+    },
+    {
+        "name":"Epaper Display",
+        "description": "2.9 in 3-color display, with UART headers", 
+        "minPrice": 22.30, 
+        "isSold": false
+    }
+]
