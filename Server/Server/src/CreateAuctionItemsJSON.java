@@ -9,6 +9,7 @@ import com.google.gson.Gson;
 public class CreateAuctionItemsJSON {
 	
 	public static List<AuctionItem> items; 
+	public static List<User> users; 
 	
 	public void createList() {
 		
@@ -35,5 +36,26 @@ public class CreateAuctionItemsJSON {
 		}
 		
 	}
+	
+	public void createUsers() {
+		try {
+			users = Arrays.asList(
+				new User("CottonEyeJoe"), 
+				new User("OldCowboy"), 
+				new User("GoldMiner"),
+				new User("CyberCactus")
+			);
+			
+			Writer userWriter = new FileWriter("users0.json"); 
+			new Gson().toJson(users, userWriter); 
+			userWriter.close();
+			
+		} catch(Exception e) {
+			System.err.println("Error creating users JSON"); 
+			e.printStackTrace();
+		}		
+	}
+	
+	// Turn into a file?
 	
 }

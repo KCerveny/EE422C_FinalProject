@@ -22,40 +22,49 @@ import com.google.gson.reflect.TypeToken;
 public class Server extends Observable {
 
     static Server server;
+    static List<AuctionItem> readItems; //AuctionItems read in from local json
+    
 
     public static void main (String [] args) {
         server = new Server();
+        CreateAuctionItemsJSON s = new CreateAuctionItemsJSON();
+        s.createUsers();
         server.populateItems();
         server.SetupNetworking();
     }
+    
+    private boolean checkUsers(String username) {
+    	try {
+    		Gson gson = new Gson(); 
+        	Reader reader = Files.newBufferedReader(Paths.get("users0.json")); 
+        	List<User> readUser = new Gson().fromJson(reader, new TypeToken<List<User>>() {}.getType());
+
+        	for(User u: readUser) {
+        		if(u.getUsername().equals(username)) {
+        			return true; // We have found a matching username
+        		}
+        	}
+        	return false; 
+        			
+    	} catch(Exception ex) {
+    		System.err.println("Error finding users"); 
+    		ex.printStackTrace();
+    	}
+		return false;
+    	
+    }
 
     private void populateItems() {
-		// TODO Auto-generated method stub
-//    	CreateAuctionItemsJSON fileList = new CreateAuctionItemsJSON(); 
-//    	fileList.createList();
-    	
-//    	CreateAuctionItemsJSON readFile = new CreateAuctionItemsJSON(); 
     	
     	try {
-    	    // create Gson instance
     	    Gson gson = new Gson();
-
-    	    // create a reader
     	    Reader reader = Files.newBufferedReader(Paths.get("items0.json"));
-
-    	    // convert JSON array to list of users
-    	    List<AuctionItem> readItems = new Gson().fromJson(reader, new TypeToken<List<AuctionItem>>() {}.getType());
-
-    	    // print users
+    	    readItems = new Gson().fromJson(reader, new TypeToken<List<AuctionItem>>() {}.getType());
     	    readItems.forEach(System.out::println);
-
-    	    // close reader
     	    reader.close();
-
     	} catch (Exception ex) {
     	    ex.printStackTrace();
-    	}
-    			
+    	}	
 	}
 
 	private void SetupNetworking() {
@@ -86,14 +95,25 @@ public class Server extends Observable {
         try {
           String temp = "";
           switch (message.type) {
-            case "upper":
-              temp = message.input.toUpperCase();
-              break;
-            case "lower":
-              temp = message.input.toLowerCase();
-              break;
-            case "strip":
-              temp = message.input.replace(" ", "");
+          	case "login": 
+          		System.out.println("HELL YEAHH BABYY"); 
+          		System.out.println("Username: "+ message.username);
+          		
+          		// Check to see if username is in database
+          		// Optional: check to see if passHash matches
+          		if(this.checkUsers(message.username)){
+          			System.out.println("We found the user!");
+          		}
+          		
+          		// return confirmation to client
+          		
+          		
+          		break; 
+            case "bid":
+              System.out.println("A bid was placed: " + message.number); 
+              // Update price of item
+              // 
+              
               break;
           }
           output = "";

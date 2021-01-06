@@ -6,8 +6,12 @@ import java.util.Scanner;
 
 import javafx.application.Application;
 import javafx.scene.Scene;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
+import javafx.scene.control.Button;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -25,21 +29,42 @@ public class Client extends Application {
 	private PrintWriter toServer = null; 
 	private BufferedReader fromServer = null;
 	private Scanner consoleInput = new Scanner(System.in);
-
+	private TextField outgoing;
 	
 	
 	@Override
 	public void start(Stage primaryStage) { 
 		BorderPane mainPane = new BorderPane(); 
 
+		//create a label name
+		Label name=new Label("Username: ");
+		//create a label age
+		Label Age = new Label("Password : ");
+		// create two textfields for label name and label age
+		TextField t1=new TextField();
+		TextField t2=new TextField();
+		//create a button
+		Button btn = new Button("Login");
+		//action to be performed
+		btn.setOnAction(e-> {
+			toServer.println("{ type: 'login', username: '" + t1.getText() + "'}");
+			toServer.flush();
+		});
+		//create a gridpane
+		GridPane r = new GridPane();
+		r.addRow(0, t1);
+		r.addRow(1, t2);
+		r.addRow(2, btn);
+		
 		// Create a scene and place it in the stage 
-		Scene scene = new Scene(mainPane, 700, 500); 
-		primaryStage.setTitle("Client"); // Set the stage title 
-		primaryStage.setScene(scene); // Place the scene in the stage 
-		primaryStage.show(); // Display the stage 
-
-//		XX.setOnAction(e -> { 
-//		});  // etc.	
+		Scene scene = new Scene(r, 700, 500);
+		//set the scene
+		primaryStage.setScene(scene);
+		//set the title
+		primaryStage.setTitle("Text Field Example");
+		//display the result
+		primaryStage.show();
+		
 		
 		
 		try {
