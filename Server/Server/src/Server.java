@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Observable;
+import java.util.logging.*;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -23,10 +24,12 @@ public class Server extends Observable {
 
     static Server server;
     static List<AuctionItem> readItems; //AuctionItems read in from local json
-    
+    static Logger log; 
 
     public static void main (String [] args) {
         server = new Server();
+        log = Logger.getLogger(Server.class.getName()); // Instantiate a logger
+        
         CreateAuctionItemsJSON s = new CreateAuctionItemsJSON();
         s.createUsers();
         server.populateItems();
@@ -47,7 +50,7 @@ public class Server extends Observable {
         	return false; 
         			
     	} catch(Exception ex) {
-    		System.err.println("Error finding users"); 
+    		log.log(Level.WARNING, "Error finding users"); 
     		ex.printStackTrace();
     	}
 		return false;
@@ -62,6 +65,18 @@ public class Server extends Observable {
     	    readItems = new Gson().fromJson(reader, new TypeToken<List<AuctionItem>>() {}.getType());
     	    readItems.forEach(System.out::println);
     	    reader.close();
+    	    
+    	    
+    	    // Thread constantly checks items to see if they are expired
+    	    Thread expireThread = new Thread(new Runnable() {
+    	    	@Override
+    	    	public void run() {
+    	    		// check all items in AuctionItems
+    	    		// If time is expired, remove from list (?), or mark asSold(?)
+    	    	}
+    	    });
+    	    
+    	    
     	} catch (Exception ex) {
     	    ex.printStackTrace();
     	}	
@@ -88,43 +103,61 @@ public class Server extends Observable {
     }
     
     // TODO: Write driving function to process client requests
-    protected void processRequest(String input) {
+    protected String processRequest(String input) {
         String output = "Error";
         Gson gson = new Gson();
         Message message = gson.fromJson(input, Message.class);
         try {
           String temp = "";
           switch (message.type) {
+          
+          	// User is attempting to log into the application
           	case "login": 
-          		System.out.println("HELL YEAHH BABYY"); 
-          		System.out.println("Username: "+ message.username);
+          		log.log(Level.FINE, "Login attempt: "+ message.username);
           		
           		// Check to see if username is in database
           		// Optional: check to see if passHash matches
           		if(this.checkUsers(message.username)){
-          			System.out.println("We found the user!");
+          			log.log(Level.INFO, "Valid Login Credentials");
+          			return "{ type: 'login', loginSuccess: true, username: '"+message.username+"'}";
           		}
+          		else {
+          			log.log(Level.INFO, "Invalid Login Credentials");
+          			return "{ type: 'login', loginSuccess: false, username: '"+message.username+"'}";
+          		}
+          	
+          	// Client is requesting purchase history associated with their account
+          	case "history": 
+      			
+          		return "client history";
           		
-          		// return confirmation to client
+          	// Client requesting list of all valid items on the market
+          	case "getItems": 
+          			String itemsToJSON = new Gson().toJson(readItems);
+          		return  "{ type: 'getItems', input: '" + itemsToJSON + "'}";
           		
-          		
-          		break; 
+      		// Client sending a bid for an item on the market
             case "bid":
               System.out.println("A bid was placed: " + message.number); 
               // Update price of item
               // 
               
-              break;
+              return "TODO: bid JSON"; 
           }
-          output = "";
-          for (int i = 0; i < message.number; i++) {
-            output += temp;
-            output += " ";
-          }
-          this.setChanged();
-          this.notifyObservers(output);
+          
+          log.log(Level.SEVERE, "Invalid Client Message"); 
+          return "Did not match any cases"; 
+          
+//          output = "";
+//          for (int i = 0; i < message.number; i++) {
+//            output += temp;
+//            output += " ";
+//          }
+//          this.setChanged();
+//          this.notifyObservers(output);
         } catch (Exception e) {
           e.printStackTrace();
+          return "Server error"; 
         }
       }
 	

@@ -2,6 +2,7 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.List;
 import java.util.Scanner;
 
 import javafx.application.Application;
@@ -12,9 +13,11 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
 import javafx.scene.control.Button;
+import java.util.logging.*;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 
 /*
  * Author: Vallath Nandakumar and EE 422C instructors
@@ -27,45 +30,33 @@ import com.google.gson.GsonBuilder;
 public class Client extends Application { 
 	// I/O streams 
 	private PrintWriter toServer = null; 
-	private BufferedReader fromServer = null;
-	private Scanner consoleInput = new Scanner(System.in);
-	private TextField outgoing;
+	private BufferedReader fromServer = null;	
+	private ClientGUI display; 
 	
+	// Debugging logger
+	static Logger logger; 
+	
+	// Server message variables
+	private boolean loginSuccess; 
+	private String username; 
+	private String passHash; 
+	
+	// Items available to bid on
+	private List<AuctionItem> marketItems; 
+	
+	
+	
+	
+	// Initializer
+	public Client() {
+		this.loginSuccess = false; // Not logged-in to begin with 
+	}
 	
 	@Override
 	public void start(Stage primaryStage) { 
-		BorderPane mainPane = new BorderPane(); 
-
-		//create a label name
-		Label name=new Label("Username: ");
-		//create a label age
-		Label Age = new Label("Password : ");
-		// create two textfields for label name and label age
-		TextField t1=new TextField();
-		TextField t2=new TextField();
-		//create a button
-		Button btn = new Button("Login");
-		//action to be performed
-		btn.setOnAction(e-> {
-			toServer.println("{ type: 'login', username: '" + t1.getText() + "'}");
-			toServer.flush();
-		});
-		//create a gridpane
-		GridPane r = new GridPane();
-		r.addRow(0, t1);
-		r.addRow(1, t2);
-		r.addRow(2, btn);
 		
-		// Create a scene and place it in the stage 
-		Scene scene = new Scene(r, 700, 500);
-		//set the scene
-		primaryStage.setScene(scene);
-		//set the title
-		primaryStage.setTitle("Text Field Example");
-		//display the result
-		primaryStage.show();
-		
-		
+		// Create logger instance for debugging
+		logger = Logger.getLogger(Client.class.getName());
 		
 		try {
 			connectToServer(); 
@@ -73,6 +64,9 @@ public class Client extends Application {
 			System.err.println("Client connection error!"); 
 			e.printStackTrace();
 		}
+		
+		display = new ClientGUI(primaryStage, toServer); 
+		display.showLogin(); 
 		
 	}
 	
@@ -97,38 +91,79 @@ public class Client extends Application {
 	            processRequest(input);
 	          }
 	        } catch (Exception e) {
-	          e.printStackTrace();
-	        }
-	      }
-	    });
-
-		// TODO: This will be updated, no longer taking input from the terminal
-		// Add GUI actions for application
-		Thread writerThread = new Thread(new Runnable() {
-	      @Override
-	      public void run() {
-	        while (true) {
-	          String input = consoleInput.nextLine();
-	          String[] variables = input.split(",");
-	          Message request = new Message(variables[0], variables[1], Integer.valueOf(variables[2]));
-	          GsonBuilder builder = new GsonBuilder();
-	          Gson gson = builder.create();
-	          sendToServer(gson.toJson(request));
+	        	logger.log(Level.SEVERE, "Client: reader thread failure!");
+	        	e.printStackTrace();
 	        }
 	      }
 	    });
 
 	    readerThread.start();
-	    writerThread.start();
 
 	}
 	
+	
+	// Processes all returned messages from the server
 	protected void processRequest(String input) {
-	    return;
+	    
+		Gson gson = new Gson();
+		Message message = gson.fromJson(input, Message.class);
+		System.out.println(message.type); 
+		try {
+			switch(message.type) {
+				case "login": 
+					if(message.loginSuccess == true) {
+						logger.log(Level.FINE, "Valid login attempt.");
+						this.loginSuccess = true; // Set login to true
+						this.username = message.username;
+						
+						// Server request for puchase history, current sale items
+//						sendToServer("{ type: 'history', username: '" + username + "'}");
+						
+						// Retrieve all items on market
+						sendToServer("{ type: 'getItems', username: '" + username + "'}");
+						// Move on to bidding screen
+//						display.showMarket(); 
+						
+					}
+					else {
+						// Display "incorrect username or password"
+						logger.log(Level.INFO, "Invalid login attempt.");
+						display.loginError();
+					}
+					break; 
+					
+				case "history": 
+					try {
+						// Populate window with user's purchase history
+						
+					} catch(Exception ex) {
+						logger.log(Level.SEVERE, "Unable to populate user purchase history.");
+						ex.printStackTrace();
+					}
+					return; 
+					
+				case "getItems": 
+					
+						// convert JSON to list of AuctionItem objects
+						marketItems = new Gson().fromJson(message.input, new TypeToken<List<AuctionItem>>() {}.getType()); 
+						
+						// Display all auction items on GUI
+						
+					return; 
+					
+				case "bid": 
+					
+					return; 
+			}
+		}catch(Exception ex) {
+			logger.log(Level.SEVERE, "Error in client processing message from server");
+			ex.printStackTrace();
+		}
+		
 	  }
 	
 	protected void sendToServer(String string) {
-	    System.out.println("Sending to server: " + string);
+	    logger.log(Level.INFO, "Sending to server: " + string);
 	    toServer.println(string);
 	    toServer.flush();
 	  }

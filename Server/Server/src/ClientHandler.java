@@ -33,10 +33,12 @@ class ClientHandler implements Runnable, Observer {
   @Override
   public void run() {
     String input;
+    String output; 
     try {
       while ((input = fromClient.readLine()) != null) {
         System.out.println("From client: " + input);
-        server.processRequest(input);
+        output = server.processRequest(input);
+        sendToClient(output); 
       }
     } catch (IOException e) {
       e.printStackTrace();
