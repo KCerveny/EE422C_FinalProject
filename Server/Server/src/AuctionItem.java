@@ -4,23 +4,25 @@ public class AuctionItem {
 	private String name;
 	private String description; 
     private double minPrice;
-    private boolean isSold;
+    private double salePrice; 
+    private String status;
 
     public AuctionItem() {
     	this.name = ""; 
     	this.description = ""; 
     	this.minPrice = 0.0; 
-    	this.isSold = false; 
+    	this.status = "New Item"; 
     }
 
-    public AuctionItem(String name, String description, double minPrice, boolean isSold) {
+    public AuctionItem(String name, String description, double minPrice, double salePrice, String status) {
         this.name = name;
         this.description = description;
         this.minPrice = minPrice;
-        this.isSold = isSold;
+        this.salePrice = salePrice; 
+        this.status = status; 
     }
 
-    // getters
+    // getters 
     public String getName() {
     	return this.name; 
     }
@@ -29,9 +31,6 @@ public class AuctionItem {
     }
     public double getMinPrice() {
     	return this.minPrice;
-    }
-    public boolean getIsSold() {
-    	return this.isSold;
     }
     
     // Setters
@@ -44,12 +43,25 @@ public class AuctionItem {
     public void setMinPrice(double price) {
     	this.minPrice = price; 
     }
-    public void setIsSold(boolean sold) {
-    	this.isSold = sold; 
-    }
     	
     public String toString() {
-    	return(this.name + ", " + this.description + ", " + this.isSold);
+    	return(this.name + ", " + this.description + ", " + this.status);
     }
+
+	public double getSalePrice() {
+		return salePrice;
+	}
+
+	public void setSalePrice(double salePrice) {
+		this.salePrice = salePrice;
+	}
+	
+	public String getStatus() {
+		return status; 
+	}
+	
+	public void setStatus(String status) {
+		this.status = status; 
+	}
 	
 }

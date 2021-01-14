@@ -1,0 +1,13 @@
+# Final Project: eHills Application
+
+## User Instructions
+
+The eHills Auction platform operates off of a reserve auction model. Each item is posted to the site with a minimum price set, available to the public. In addition, each item also holds a secret sale price, known only to the seller. Each user has unlimited opportunities to bid for the item until their bid meets or exceeds the secret sale price. Valid bids are only those greater than the current minimum price. Each valid bid is a bid that is greater than the current minimum price, with no upper limit on a valid bid. 
+
+Example: 
+A seller is selling a stapler, with the minimum price set to $1.60. The secret sale limit is $4.15 for this same stapler, but this price is unknown to the users. If a user chose to, they could place a bid for $200, effectively guranteeing that they secured the item being bidded on. However, it would only require a bid of $4.15 or more to actually secure the item, thus it would be prudent to bet a more reasonable amount for said stapler. 
+
+	The purpose of this bidding model is to provide consumers with a more fair model for bidding for consumer goods, deliberately preventing the addicting nature of auctions. If the seller in the previous example were to set the stapler's secret sale price at $300, as users bid in smaller increments, they will continue to drop out of the contest as the price grew higher. If the selling price was never reached, the seller would be able to see the highest bid for the item (which did not secure the product) and use that information to set the price of the item closer to its actual market value in a future bidding contest. 
+	However, if the item were dramatically undervalued, a savvy and enthusiastic buyer may bid far higher than the secret sale price, which would have been accidentally under-set by the seller. If the stapler were used by a former famous president, for example, an enthusiast may bid $400 for it, knowing that another buyer could easily come along and purchase it immediately with a higher bid. This model is intended to put some of the power into the hands of the consumers while maintaining fair market prices. 
+
+	All that is needed for a user to use the platform is to boot up the application, log with their credentials to get their own personal account, or proceed as a guest to the marketplace. From there, the user simply needs to click on an item from the left-hand table and enter a bid for the item. If the bid is illegal, the 

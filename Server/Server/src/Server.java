@@ -32,6 +32,7 @@ public class Server extends Observable {
         
         CreateAuctionItemsJSON s = new CreateAuctionItemsJSON();
         s.createUsers();
+        s.createList();
         server.populateItems();
         server.SetupNetworking();
     }
@@ -67,15 +68,6 @@ public class Server extends Observable {
     	    reader.close();
     	    
     	    
-    	    // Thread constantly checks items to see if they are expired
-    	    Thread expireThread = new Thread(new Runnable() {
-    	    	@Override
-    	    	public void run() {
-    	    		// check all items in AuctionItems
-    	    		// If time is expired, remove from list (?), or mark asSold(?)
-    	    	}
-    	    });
-    	    
     	    
     	} catch (Exception ex) {
     	    ex.printStackTrace();
@@ -104,11 +96,19 @@ public class Server extends Observable {
     
     // TODO: Write driving function to process client requests
     protected String processRequest(String input) {
-        String output = "Error";
         Gson gson = new Gson();
-        Message message = gson.fromJson(input, Message.class);
+        Message message; 
+        
+        // If exception, client sent non-compatible message
         try {
-          String temp = "";
+        	message = gson.fromJson(input, Message.class);	
+        } catch(Exception ex) {
+        	log.log(Level.WARNING, "Invalid client message: not compatible with Message type");
+        	return("{ type: 'error', input: 'Invalid Message type'}"); 
+        }
+        
+        try {
+
           switch (message.type) {
           
           	// User is attempting to log into the application
@@ -138,11 +138,35 @@ public class Server extends Observable {
           		
       		// Client sending a bid for an item on the market
             case "bid":
-              System.out.println("A bid was placed: " + message.number); 
-              // Update price of item
-              // 
+              System.out.println("A bid was placed: " + message.bid); 
               
-              return "TODO: bid JSON"; 
+              // Confirm this is a legal bid (< currPrice)
+              for(AuctionItem it: readItems) {
+            	  if(it.getName().equals(message.input)) {
+            		  // Is the item for sale?
+            		  if(it.getStatus().equals("Sold!")) {
+            			  return "{type: 'error', input: 'Item has been sold'}";
+            		  }
+            		  
+            		  // Is the bid high enough?
+            		  if(it.getMinPrice() <= (double) message.bid) {
+            			  it.setMinPrice((double) message.bid);
+            			  
+            			  if(it.getMinPrice() >= it.getSalePrice()) {
+            				  it.setStatus("Sold!");
+            			  }
+            			  
+            			  this.setChanged();
+            			  this.notifyObservers("{ type: bid, input: '" + it.getName() + "', currPrice: '" + it.getMinPrice() + "' }");
+            			  return "{ type: bid, input: '" + it.getName() + "', currPrice: '" + it.getMinPrice() + "' }";
+            		  }
+            		  else {
+            			  return "{type: 'error', input: 'Bid must be higher than current price'}"; 
+            		  }
+            	  }
+              }
+
+              return "{ type: 'error', input: 'Invalid bid value'}"; 
           }
           
           log.log(Level.SEVERE, "Invalid Client Message"); 

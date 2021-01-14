@@ -1,22 +1,19 @@
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.List;
-import java.util.Scanner;
 
 import javafx.application.Application;
-import javafx.scene.Scene;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.GridPane;
+import javafx.beans.property.Property;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.stage.Stage;
-import javafx.scene.control.Button;
 import java.util.logging.*;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 
 /*
@@ -32,20 +29,24 @@ public class Client extends Application {
 	private PrintWriter toServer = null; 
 	private BufferedReader fromServer = null;	
 	private ClientGUI display; 
+	private Client client; 
+	
+	// Keep track of to close out on shutdown
+	private Socket socket;
+	private Thread readerThread; 
 	
 	// Debugging logger
 	static Logger logger; 
 	
 	// Server message variables
-	private boolean loginSuccess; 
-	private String username; 
-	private String passHash; 
+	public boolean loginSuccess; 
+	public boolean loginReceived; 
+	public String username; 
+	public String passHash; 
 	
 	// Items available to bid on
-	private List<AuctionItem> marketItems; 
-	
-	
-	
+	public ObservableList<AuctionItem> marketItems; 
+	public Property<ObservableList<AuctionItem>> marketProperty; 
 	
 	// Initializer
 	public Client() {
@@ -55,33 +56,37 @@ public class Client extends Application {
 	@Override
 	public void start(Stage primaryStage) { 
 		
+		client = new Client(); 
+		
 		// Create logger instance for debugging
 		logger = Logger.getLogger(Client.class.getName());
 		
 		try {
-			connectToServer(); 
+			client.connectToServer(); 
 		} catch (Exception e) {
 			System.err.println("Client connection error!"); 
 			e.printStackTrace();
 		}
+		ClientGUI disp = new ClientGUI(); 
+		this.display = disp; 
 		
-		display = new ClientGUI(primaryStage, toServer); 
-		display.showLogin(); 
+		display.showLogin(primaryStage, client); 
+		
 		
 	}
 	
 	private void connectToServer() throws Exception { 
 		int port = 5000; 
 		// Create a socket to connect to the server 
-		@SuppressWarnings("resource")
-		Socket socket = new Socket("localhost", port); 
+
+		socket = new Socket("localhost", port); 
 		
 		// Create an input stream to receive data from the server 
 		fromServer = new BufferedReader(new InputStreamReader(socket.getInputStream())); 
 		// Create an output stream to send data to the server 
 		toServer = new PrintWriter(socket.getOutputStream()); 
 		
-		Thread readerThread = new Thread(new Runnable() {
+		readerThread = new Thread(new Runnable() {
 	      @Override
 	      public void run() {
 	        String input;
@@ -98,7 +103,6 @@ public class Client extends Application {
 	    });
 
 	    readerThread.start();
-
 	}
 	
 	
@@ -110,25 +114,29 @@ public class Client extends Application {
 		System.out.println(message.type); 
 		try {
 			switch(message.type) {
+			
 				case "login": 
 					if(message.loginSuccess == true) {
 						logger.log(Level.FINE, "Valid login attempt.");
-						this.loginSuccess = true; // Set login to true
 						this.username = message.username;
+						
+						
+						this.loginSuccess = true;
+						this.loginReceived = true; 
 						
 						// Server request for puchase history, current sale items
 //						sendToServer("{ type: 'history', username: '" + username + "'}");
 						
 						// Retrieve all items on market
 						sendToServer("{ type: 'getItems', username: '" + username + "'}");
-						// Move on to bidding screen
-//						display.showMarket(); 
+						
 						
 					}
 					else {
 						// Display "incorrect username or password"
 						logger.log(Level.INFO, "Invalid login attempt.");
-						display.loginError();
+						this.loginSuccess = false; 
+						this.loginReceived = true; 
 					}
 					break; 
 					
@@ -145,15 +153,44 @@ public class Client extends Application {
 				case "getItems": 
 					
 						// convert JSON to list of AuctionItem objects
-						marketItems = new Gson().fromJson(message.input, new TypeToken<List<AuctionItem>>() {}.getType()); 
-						
-						// Display all auction items on GUI
+						List<AuctionItem> jsonList = new Gson().fromJson(message.input, new TypeToken<List<AuctionItem>>() {}.getType()); 
+						marketItems = FXCollections.observableArrayList(jsonList); // Cast into ObservableList for TableView
+						marketProperty = new SimpleObjectProperty<>(marketItems); 
+						for(AuctionItem i : marketItems) System.out.println(i); 
 						
 					return; 
+				
+				// Item has been bidded on, updating its status for the client
+				case "bid":
+					System.out.println("We have received a new bid: " + message.currPrice);
 					
-				case "bid": 
+					// Update price of item which has been bid on
+					for(AuctionItem item: marketItems) {
+						// Find correct item, update information
+						if(item.getName().equals(message.input)) {
+							
+							// We have found the correct item
+							int place = marketItems.indexOf(item); 
+							
+							item.setMinPrice((double) message.currPrice);
+							if(item.getSalePrice() <=  item.getMinPrice()) {
+								item.setStatus("Sold!");
+							}
+							else {
+								item.setStatus("New Bid!");
+							}
+							
+							marketItems.set(place, item); 
+
+						}
+					}
 					
 					return; 
+					
+				case "error": 
+					
+					
+					System.out.println("Error: " + message.input);
 			}
 		}catch(Exception ex) {
 			logger.log(Level.SEVERE, "Error in client processing message from server");
@@ -167,6 +204,13 @@ public class Client extends Application {
 	    toServer.println(string);
 	    toServer.flush();
 	  }
+	
+	@SuppressWarnings("deprecation")
+	public void appShutdown() throws IOException {
+		readerThread.stop();
+		socket.close();
+		System.exit(0);
+	}
 	
 	public static void main(String[] args) {
 		launch(args);

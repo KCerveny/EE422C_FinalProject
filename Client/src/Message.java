@@ -5,7 +5,8 @@ class Message {
   String username; 
   String passHash; 
   String input;
-  int number;
+  double currPrice;
+  double bid; 
 
   protected Message() {
     this.type = "";
@@ -13,17 +14,20 @@ class Message {
     this.username = "guest"; 
 	this.passHash = ""; 
     this.input = "";
-    this.number = 0;
+    this.currPrice= 0.0;
+    this.bid = 0.0;
+    
     System.out.println("client-side message created");
   }
 
-  protected Message(String type, boolean login, String user, String pass, String input, int number) {
+  protected Message(String type, boolean login, String user, String pass, String input, double number, double bid) {
     this.type = type;
     this.loginSuccess = login;
     this.username = user; 
     this.passHash = pass;
     this.input = input;
-    this.number = number;
+    this.currPrice = number;
+    this.bid = bid; 
     System.out.println("client-side message created");
   }
 }

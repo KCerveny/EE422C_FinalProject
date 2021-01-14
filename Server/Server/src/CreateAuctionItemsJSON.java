@@ -1,5 +1,4 @@
 import java.io.FileWriter;
-import java.io.IOException;
 import java.io.Writer;
 import java.util.Arrays;
 import java.util.List;
@@ -17,9 +16,13 @@ public class CreateAuctionItemsJSON {
 		    // create a list of users
 		    items = Arrays.asList(
 		            new AuctionItem("breadboard", "conventional solderless breadboard, .1 inch spread",
-		                    2.12, false),
+		                    2.12, 5.12, "New"),
 		            new AuctionItem("Wire Set", "MM, MF, FF Wires in an assortment of colors",
-		                    3.30, false)
+		                    3.30, 6.0, "New"), 
+		            new AuctionItem("Epaper Display", "2.9 inch 3-color display", 13.40, 22.50, "New"), 
+		            new AuctionItem("Glasses Cleaner", "Glasses cleaning spray, 4 oz", 1.20, 7.80, "New"), 
+		            new AuctionItem("Rasperry Pi 4", "4 Gb RAM, ethernet and 2 USB 3.0 ports", 20.33, 65.70, "New"), 
+		            new AuctionItem("NodeMCU ESP32", "ESP32 Development board, 32 pins, WIFI and Bluetooth", 4.21, 15.39, "New")
 		    );
 
 		    // create writer
@@ -40,6 +43,7 @@ public class CreateAuctionItemsJSON {
 	public void createUsers() {
 		try {
 			users = Arrays.asList(
+				new User("guest"),
 				new User("CottonEyeJoe"), 
 				new User("OldCowboy"), 
 				new User("GoldMiner"),
