@@ -1,6 +1,13 @@
-  # Final Project: eHills Application
+# Final Project: eHills Application
 
 ## User Instructions
+
+### How to Use
+The server portion of the project is stored in a file named A4.jar. In order to run it, one needs to open Eclipse, create a new project, then File->Import->General->Archive File and then finally include the location of A4.jar from wherever it is on your machine. Some of the java files may be outside of the source folder. If so, just select all .java files and put them in the src folder and you should be able to run the application. Make sure port 5000 is open before you try to run it or it will throw an exception.
+	In order to run the client, all that is needed is for the server project to be running and then to double click on the file named Client_jar.jar and it should open up the application. You can login as a guest, or use one of the users: CottonEyeJoe, pass: asdf. Then you will be able to bid on the items in the marketplace. 
+
+
+### General Use
 
 The eHills Auction platform operates off of a reserve auction model. Each item is posted to the site with a minimum price set, available to the public. In addition, each item also holds a secret sale price, known only to the seller. Each user has unlimited opportunities to bid for the item until their bid meets or exceeds the secret sale price. Valid bids are only those greater than the current minimum price. Each valid bid is a bid that is greater than the current minimum price, with no upper limit on a valid bid. 
 
@@ -25,7 +32,9 @@ A seller is selling a stapler, with the minimum price set to $1.60. The secret s
 	When the client application is started up, the client attempts create a connection to the server, which will create a corresponding ClientHandler to communicate through on the server side. Once a connection is established, the client application presents a GUI to the user prompting them to log in. The user enters a username and password, which are sent to the server via the socket connection. In its current state, only the password is verified against the list of all users. If there is a match present in the users0.json file, the server will send a confirmation to the client, which will trigger the login and enable the client application to proceed to the marketplace. If there is no matching username, the GUI will trigger an error message and remain on the login screen. The user also has the option to login as a guest, which simply sends the server the credentials for the known user "guest". 
 	Once a login is confirmed, the client then requests a list of all available items from the server, along with their respective statuses. Once the items appear, they can be clicked on and bid, which calls the client to send a message json, modeled after the Message java object, to be sent to its corresponding ClientHandler and processed. There is some amount of message handling preformed on the client side to make sure the message is legal and provide immediate feedback, but the message will be verified an additional time on the server side to ensure its validity. 
 
-
+## Github URL
+It seems that because of my incomplete grade in the class, I was preemptively booted off of the class Canvas page before I could establish the correct github page, so I instead used my own github account and created a public repository for it. 
+https://github.com/KCerveny/EE422C_FinalProject
 
 ## Resources
 These are the resources I relied on the most to complete the functionality of the application. 
