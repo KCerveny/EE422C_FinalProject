@@ -1,4 +1,4 @@
-# Final Project: eHills Application
+  # Final Project: eHills Application
 
 ## User Instructions
 
@@ -10,4 +10,29 @@ A seller is selling a stapler, with the minimum price set to $1.60. The secret s
 	The purpose of this bidding model is to provide consumers with a more fair model for bidding for consumer goods, deliberately preventing the addicting nature of auctions. If the seller in the previous example were to set the stapler's secret sale price at $300, as users bid in smaller increments, they will continue to drop out of the contest as the price grew higher. If the selling price was never reached, the seller would be able to see the highest bid for the item (which did not secure the product) and use that information to set the price of the item closer to its actual market value in a future bidding contest. 
 	However, if the item were dramatically undervalued, a savvy and enthusiastic buyer may bid far higher than the secret sale price, which would have been accidentally under-set by the seller. If the stapler were used by a former famous president, for example, an enthusiast may bid $400 for it, knowing that another buyer could easily come along and purchase it immediately with a higher bid. This model is intended to put some of the power into the hands of the consumers while maintaining fair market prices. 
 
-	All that is needed for a user to use the platform is to boot up the application, log with their credentials to get their own personal account, or proceed as a guest to the marketplace. From there, the user simply needs to click on an item from the left-hand table and enter a bid for the item. If the bid is illegal, the 
+	All that is needed for a user to use the platform is to boot up the application, log with their credentials to get their own personal account, or proceed as a guest to the marketplace. From there, the user simply needs to click on an item from the left-hand table and enter a bid for the item. If the bid is illegal, the interface will notify the user of the reason and the bid will not be processed. 
+
+
+## Developer Information
+
+### Server
+	The server for the bidding platform communicates with clients via Java sockets, as on boot-up a thread is started, constantly looking for clients on the socket. All of the items in the market are stored in a JSON file named items0.json, populated and converted via the Google gson library from the AuctionItem java object, which is a part of the Server project. In addition, all of the active users are stored in a JSON file named users0.json, which are converted via the Google gson library from the Users java object. 
+	After the server instantiates all of the users and market items, and prepares for incoming socket connections from Clients, it simply waits for a connection to be made. Once a connection is made, the server creates a new instance of ClientHandler, a runnable object which is also an observer to the status of the main Client object. This ClientHandler represents the connection to the client which connected to the server, and waits for incoming messages from the Client. Once the client sends a message via the socket, the ClientHandler invokes the Server method processRequest, which will yield a response from the server which the ClientHandler will return to the Client. 
+	An example of this is a login request sent by the Client. The ClientHandler will receive this message and process it via server.processRequest(). From there, the server will check to see if the credentials provided are in the system (sourced from the users0.json file) and return either a confirmation or denial to the ClientHandler. The ClientHandler will then pass this response back to the Client it represents via its socket connection. 
+	In addition, the ClientHandler is an observer to the Server object which created this. This is important because all of the ClientHandlers represent Clients which require accurate information on the status of the market items. If one client sends a valid bid for an item in the eHills item market, the price will be updated, and all other clients will need to have the most recent price of the item updated for their GUIs. This universal update occurs through the observer update function, and will send out the updated prices via the sockets again. 
+
+### Client
+	When the client application is started up, the client attempts create a connection to the server, which will create a corresponding ClientHandler to communicate through on the server side. Once a connection is established, the client application presents a GUI to the user prompting them to log in. The user enters a username and password, which are sent to the server via the socket connection. In its current state, only the password is verified against the list of all users. If there is a match present in the users0.json file, the server will send a confirmation to the client, which will trigger the login and enable the client application to proceed to the marketplace. If there is no matching username, the GUI will trigger an error message and remain on the login screen. The user also has the option to login as a guest, which simply sends the server the credentials for the known user "guest". 
+	Once a login is confirmed, the client then requests a list of all available items from the server, along with their respective statuses. Once the items appear, they can be clicked on and bid, which calls the client to send a message json, modeled after the Message java object, to be sent to its corresponding ClientHandler and processed. There is some amount of message handling preformed on the client side to make sure the message is legal and provide immediate feedback, but the message will be verified an additional time on the server side to ensure its validity. 
+
+
+
+## Resources
+These are the resources I relied on the most to complete the functionality of the application. 
+- https://howtodoinjava.com/java/library/json-simple-read-write-json-examples/
+- https://attacomsian.com/blog/gson-read-json-file
+- https://attacomsian.com/blog/gson-write-json-file
+- https://www.educba.com/javafx-textfield/
+- https://www.tutorialspoint.com/javafx/layout_gridpane.htm
+- https://stackoverflow.com/questions/17388866/getting-selected-item-from-a-javafx-tableview
+- https://www.tutorialspoint.com/how-to-add-data-to-a-tableview-in-javafx
